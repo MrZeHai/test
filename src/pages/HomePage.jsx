@@ -1,9 +1,48 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useMemo } from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 import AccountItem from '../components/AccountItem';
 import { AccountsContext } from '../App';
 import PageHeader, { HeaderLink } from '../components/PageHeader';
+
+const SortButton = styled.button`
+  background: transparent;
+  border: 1px solid ${({ theme }) => theme.borderColor};
+  color: ${({ theme }) => theme.text};
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s ease-in-out;
+
+  &:hover {
+    background-color: ${({ theme }) => theme.background};
+  }
+`;
+
+const ControlsContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const SearchInput = styled.input`
+  flex-grow: 1;
+  padding: 8px 12px;
+  border: 1px solid ${({ theme }) => theme.borderColor};
+  border-radius: 20px;
+  background-color: ${({ theme }) => theme.inputBackground};
+  color: ${({ theme }) => theme.text};
+  font-size: 14px;
+
+  &::placeholder {
+    color: ${({ theme }) => theme.textSecondary};
+  }
+`;
 
 const HomePageContainer = styled.div`
   padding: 0 20px;
@@ -40,6 +79,26 @@ const AddAccountButton = styled(Link)`
 
 const HomePage = () => {
   const { accounts } = useContext(AccountsContext);
+  const [sortOrder, setSortOrder] = useState('asc');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const sortedAndFilteredAccounts = useMemo(() => {
+    return [...accounts]
+      .filter(account =>
+        account.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+      .sort((a, b) => {
+        if (sortOrder === 'asc') {
+          return a.name.localeCompare(b.name);
+        } else {
+          return b.name.localeCompare(a.name);
+        }
+      });
+  }, [accounts, sortOrder, searchQuery]);
+
+  const toggleSortOrder = () => {
+    setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
+  };
 
   return (
     <HomePageContainer>
@@ -47,9 +106,21 @@ const HomePage = () => {
         title="身份验证器"
         right={<HeaderLink to="/settings">⚙️</HeaderLink>}
       />
+      <ControlsContainer>
+        <SearchInput
+          type="text"
+          placeholder="搜索账户..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <SortButton onClick={toggleSortOrder}>
+          <span>名称</span>
+          <span>{sortOrder === 'asc' ? '↑' : '↓'}</span>
+        </SortButton>
+      </ControlsContainer>
       <AccountList>
-        {accounts.length > 0 ? (
-          accounts.map(account => (
+        {sortedAndFilteredAccounts.length > 0 ? (
+          sortedAndFilteredAccounts.map(account => (
             <AccountItem key={account.id} account={account} />
           ))
         ) : (
