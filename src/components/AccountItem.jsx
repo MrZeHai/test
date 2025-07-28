@@ -7,7 +7,7 @@ const AccountItemContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 15px;
+  padding: 15px;
   border-bottom: 1px solid ${props => props.theme.toggleBorder || '#eee'};
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
@@ -20,18 +20,13 @@ const AccountItemContainer = styled.div`
 const AccountInfo = styled.div`
   display: flex;
   flex-direction: column;
+  gap: 8px;
 `;
 
 const AccountName = styled.span`
-  font-size: 20px;
-  font-weight: 600;
-  color: ${props => props.theme.text};
-`;
-
-const RightSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  color: ${props => props.theme.textSecondary};
 `;
 
 const EditIndicator = styled.span`
@@ -51,11 +46,9 @@ const AccountItem = ({ account }) => {
     <AccountItemContainer onClick={handleEditClick}>
       <AccountInfo>
         <AccountName>{account.name}</AccountName>
-      </AccountInfo>
-      <RightSection>
         <Token secret={account.secret} />
-        <EditIndicator>›</EditIndicator>
-      </RightSection>
+      </AccountInfo>
+      <EditIndicator>›</EditIndicator>
     </AccountItemContainer>
   );
 };

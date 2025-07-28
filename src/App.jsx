@@ -13,6 +13,7 @@ import SetupPasswordPage from './pages/SetupPasswordPage';
 import UnlockPage from './pages/UnlockPage';
 import SettingsPage from './pages/SettingsPage';
 import ChangePasswordPage from './pages/ChangePasswordPage';
+import WelcomeGuide from './components/WelcomeGuide';
 
 export const AccountsContext = createContext();
 
@@ -41,6 +42,14 @@ const App = () => {
     const passwordDisabled = localStorage.getItem('password_disabled') === 'true';
     return passwordExists && !passwordDisabled;
   });
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('has_seen_welcome');
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    }
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('accounts', JSON.stringify(accounts));
@@ -77,6 +86,11 @@ const App = () => {
     setIsLocked(false);
   };
 
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('has_seen_welcome', 'true');
+  };
+
   if (!password) {
     return (
       <ThemeProvider theme={theme}>
@@ -106,6 +120,7 @@ const App = () => {
   return (
     <ThemeProvider theme={theme}>
       <GlobalStyle />
+      {showWelcome && <WelcomeGuide onClose={handleCloseWelcome} />}
       <AccountsContext.Provider value={{ accounts, addAccount, updateAccount, deleteAccount }}>
         <Router>
           <Routes>

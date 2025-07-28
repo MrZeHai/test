@@ -6,19 +6,26 @@ import 'react-circular-progressbar/dist/styles.css';
 const TokenWrapper = styled.div`
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px;
 `;
 
 const TokenContainer = styled.div`
-  font-size: 32px;
+  font-size: 28px;
   font-weight: bold;
   color: ${props => props.theme.text};
-  letter-spacing: 4px;
+  letter-spacing: 3px;
 `;
 
 const ProgressBarContainer = styled.div`
   width: 40px;
   height: 40px;
+`;
+
+const Icon = styled.span`
+  cursor: pointer;
+  font-size: 20px;
+  margin-left: 10px;
+  color: ${props => props.theme.textSecondary};
 `;
 
 const generateToken = (secret) => {
@@ -36,37 +43,33 @@ const generateToken = (secret) => {
 const Token = ({ secret }) => {
   const theme = useContext(ThemeContext);
 
-  const [token, setToken] = useState(() => generateToken(secret));
+  const calculateTimeLeft = () => {
+    const epochSeconds = Math.floor(new Date().getTime() / 1000);
+    return 30 - (epochSeconds % 30);
+  };
 
-  const [timeLeft, setTimeLeft] = useState(() => {
-    const storedDeadline = localStorage.getItem(`timer-deadline-${secret}`);
-    if (storedDeadline) {
-      const deadline = parseInt(storedDeadline, 10);
-      const remaining = deadline - Date.now();
-      if (remaining > 0) {
-        return Math.round(remaining / 1000);
-      }
-    }
-    const newDeadline = Date.now() + 30000;
-    localStorage.setItem(`timer-deadline-${secret}`, newDeadline);
-    return 30;
-  });
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [isVisible, setIsVisible] = useState(true);
+  const token = generateToken(secret);
 
   useEffect(() => {
     const timerId = setInterval(() => {
-      setTimeLeft(prevTime => {
-        if (prevTime <= 1) {
-          setToken(generateToken(secret));
-          const newDeadline = Date.now() + 30000;
-          localStorage.setItem(`timer-deadline-${secret}`, newDeadline);
-          return 30;
-        }
-        return prevTime - 1;
-      });
+      setTimeLeft(calculateTimeLeft());
     }, 1000);
 
     return () => clearInterval(timerId);
-  }, [secret]);
+  }, []);
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(token);
+    alert('已复制到剪贴板');
+  };
+
+  const toggleVisibility = (e) => {
+    e.stopPropagation();
+    setIsVisible(!isVisible);
+  };
 
   return (
     <TokenWrapper>
@@ -77,14 +80,17 @@ const Token = ({ secret }) => {
           text={`${timeLeft}s`}
           styles={buildStyles({
             textColor: theme.text,
-            pathColor: theme.text,
-            trailColor: '#d6d6d6',
+            pathColor: theme.primary,
+            trailColor: theme.textSecondary,
+            textSize: '35px',
           })}
         />
       </ProgressBarContainer>
       <TokenContainer>
-        {token.slice(0, 3)} {token.slice(3, 6)}
+        {isVisible ? `${token.slice(0, 3)} ${token.slice(3, 6)}` : '*** ***'}
       </TokenContainer>
+      <Icon onClick={handleCopy}>📋</Icon>
+      <Icon onClick={toggleVisibility}>{isVisible ? '👁️' : '👁️‍🗨️'}</Icon>
     </TokenWrapper>
   );
 };
