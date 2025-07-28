@@ -62,8 +62,21 @@ const Token = ({ secret }) => {
 
   const handleCopy = (e) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(token);
-    alert('已复制到剪贴板');
+    const textToCopy = token;
+
+    const textArea = document.createElement("textarea");
+    textArea.value = textToCopy;
+    textArea.style.position = "absolute";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+        document.execCommand('copy');
+        alert('已复制到剪贴板');
+    } catch (err) {
+        alert('复制失败');
+    }
+    document.body.removeChild(textArea);
   };
 
   const toggleVisibility = (e) => {
