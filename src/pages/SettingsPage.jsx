@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import PageHeader, { HeaderButton } from '../components/PageHeader';
+import { AccountsContext } from '../App';
 
 const SettingsPageContainer = styled.div`
   padding: 0 20px;
@@ -105,9 +106,57 @@ const ToggleInput = styled.input`
 
 const SettingsPage = () => {
   const navigate = useNavigate();
+  const { accounts, setAccounts } = useContext(AccountsContext);
   const [isPasswordDisabled, setIsPasswordDisabled] = useState(
     () => localStorage.getItem('password_disabled') === 'true'
   );
+  const fileInputRef = useRef(null);
+
+  const handleExport = () => {
+    const dataStr = JSON.stringify(accounts, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = 'accounts.json';
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedAccounts = JSON.parse(e.target.result);
+        if (Array.isArray(importedAccounts)) {
+          setAccounts(importedAccounts);
+          alert('账户导入成功！');
+        } else {
+          alert('无效的文件格式。');
+        }
+      } catch (error) {
+        alert('导入失败，文件内容无效。');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleClearAccounts = () => {
+    if (window.confirm('您确定要清空所有账户数据吗？此操作不可撤销。')) {
+      setAccounts([]);
+      alert('所有账户数据已清空。');
+    }
+  };
 
   const handleDisablePasswordToggle = () => {
     const newDisabledState = !isPasswordDisabled;
@@ -135,6 +184,22 @@ const SettingsPage = () => {
         <Option to="/theme">
           <span>主题</span>
         </Option>
+        <ButtonOption onClick={handleExport}>
+          <span>导出账户</span>
+        </ButtonOption>
+        <ButtonOption onClick={handleImportClick}>
+          <span>导入账户</span>
+        </ButtonOption>
+        <ButtonOption onClick={handleClearAccounts}>
+          <span>清空所有账户</span>
+        </ButtonOption>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+          accept=".json"
+        />
         <Option as="div">
           <span>禁用密码</span>
           <ToggleSwitch>

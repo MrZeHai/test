@@ -121,7 +121,7 @@ const App = () => {
     <ThemeProvider theme={theme}>
       <GlobalStyle />
       {showWelcome && <WelcomeGuide onClose={handleCloseWelcome} />}
-      <AccountsContext.Provider value={{ accounts, addAccount, updateAccount, deleteAccount }}>
+      <AccountsContext.Provider value={{ accounts, setAccounts, addAccount, updateAccount, deleteAccount }}>
         <Router>
           <Routes>
             <Route path="/" element={<HomePage />} />
